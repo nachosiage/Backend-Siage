@@ -1,0 +1,93 @@
+<nav>
+    <ul>
+        <li><strong>Ecommerce</strong></li>
+    </ul>
+    <ul>
+        <li><a href="/api/carts">CartsManager</a></li>
+        <li><a href="/profile">Perfil ({{user.role}})</a></li>
+        <li><a href="/api/sessions/logout">Cerrar sesión</a></li>
+    </ul>
+</nav>
+<div>
+    <h2 class="realTimeTitle">ProductsManager</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Titulo</th>
+                    <th scope="col">
+                        <select id="category-filter" class="form-select" aria-label="Default select example">
+                            <option selected >Categoria</option>
+                            <option value="remeras">Remeras</option>
+                            <option value="camisas">Camisas</option>
+                            <option value="buzos">Buzos</option>
+                            <option value="camperas">Camperas</option>
+                            <option value="jeans">Jeans</option>
+                            <option value="bermudas">Bermudas</option>
+                            <option value="joggins">Joggins</option>
+                            <option value="joggers">Joggers</option>
+                            <option value="mallas">Mallas</option>
+                            <option value="accesorios">Accesorios</option>
+                        </select>
+                    </th>
+                    <th scope="col">
+                        <button class="contrast outline btnPrice" title="Ordena los productos por su precio" id="btn-price"><b>Precio</b></button>
+                    </th>
+                    <th scope="col">Codigo</th>
+                </tr>
+            </thead>
+            <tbody id="tableRealTime">
+                {{#each payload}}
+                    <tr data-product-id="{{this._id}}">
+                        <th scope="row">{{this._id}}</th>
+                        <td>{{this.title}}</td>
+                        <td>{{this.category}}</td>
+                        <td>${{this.price}}</td>
+                        <td>{{this.code}}</td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        <div class="navegationPage">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item"><a class="page-link contrast outline" href="{{this.prevLink}}" role="button" {{#unless hasPrevPage}}disabled{{/unless}}>⬅️</a></li>
+                <li class="page-item">{{this.page}}</li>
+                <li class="page-item"><a class="page-link contrast outline" href="{{this.nextLink}}" role="button" {{#unless hasNextPage}}disabled{{/unless}}>➡️</a></li>
+            </ul>   
+        </nav>
+    </div>
+</div>
+<div class="addProduct">
+    <h3>➕ Agregar producto:</h3>
+    <form id="addProductForm">
+        <input required class="prod-info" type="text" name="title" placeholder="Titulo">
+        <input required class="prod-info" type="text" name="description" placeholder="Descripcion">
+        <input required class="prod-info" type="text" name="code" placeholder="Codigo">
+        <input required class="prod-info" type="number" name="price" placeholder="Precio">
+        <input required class="prod-info" type="number" name="stock" placeholder="Stock">
+        <input required type="submit" value="Enviar">
+    </form>
+</div>
+<div class="updateProduct">
+    <h3>🖊️ Editar producto:</h3>
+    <form id="updateProductForm">
+        <input required ="prod-info" type="text" name="id" placeholder="ID">
+        <input class="prod-info" type="text" name="title" placeholder="Titulo">
+        <input class="prod-info" type="text" name="description" placeholder="Descripcion">
+        <input class="prod-info" type="number" name="price" placeholder="Precio">
+        <input class="prod-info" type="number" name="stock" placeholder="Stock">
+        <input type="submit" value="Enviar">
+    </form>
+</div>
+<div class="deleteProducts">
+    <h3>❌ Eliminar producto: </h3>
+    <form id="formDelete">
+        <input type="text" placeholder="ID del producto a eliminar" required id="deleteProd">
+        <input required type="submit" value="Enviar">
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/productsManager.js"></script>
+
