@@ -1,5 +1,5 @@
 {
-  "name": "proyectobackend-montero",
+  "name": "Proyecto Backen Siage Juan Ignacio",
   "version": "1.0.0",
   "description": "Proyecto de Backend para curso de Coderhouse.",
   "main": "src/server.js",
@@ -9,7 +9,7 @@
     "dev": "nodemon ."
   },
   "keywords": [],
-  "author": "Rodrigo Montero",
+  "author": "Juan Ignacio Siage",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.1",

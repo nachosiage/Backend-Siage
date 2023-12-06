@@ -116,35 +116,3 @@ export const init = (httpServer) => {
 };
 
 
-//Logic del FL
-// const productsFilePath = path.join(__dirname, '../products.json');
-
-//Traigo mis productos del JSON
-// const loadProducts = () => {
-//     try {
-//         const data = fs.readFileSync(productsFilePath, 'utf8');
-//         const productsData = JSON.parse(data);
-//         return productsData;
-//     } catch (error) {
-//         console.error('Error al cargar los productos desde el archivo JSON:', error);
-//         return [];
-//     }
-// };
-
-        // socketClient.on('delete-prod', (prodId) => {
-        //     const productIndex = products.findIndex((prod) => prod.id === prodId);
-        //     if (productIndex === -1){
-        //         socketClient.emit('prod-no-encontrado');
-        //     } else {
-        //         products.splice(productIndex,1);
-        //         fs.writeFile(productsFilePath, JSON.stringify(products, null, '\t'), 'utf-8', (err) => {
-        //             if (err) {
-        //                 console.error('Error al escribir el archivo products.json:', err);
-        //                 socketClient.emit('error', 'Error interno del servidor');
-        //                 return;
-        //             } else {
-        //                 socketClient.emit('prod-delete', products );
-        //             }
-        //         });
-        //     }
-        // });
