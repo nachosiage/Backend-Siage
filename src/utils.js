@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import  JWT from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import config from './config.js';
+import { faker } from '@faker-js/faker';
 
 
 //Ruta absoluta
@@ -17,20 +18,19 @@ export const isValidPassword = (password, user) => bcrypt.compareSync(password, 
 export const JWT_SECRET = config.secret.jwtSecret;
 export const tokenGenerator = (user) => {
     const {
-        _id,
-        first_name,
-        last_name, 
+        id,
+        fullName, 
         email, 
         role 
     } = user;
 
     const payload = {
-        id: _id,
-        first_name,
-        last_name,
+        id,
+        fullName,
         email,
         role
     };
+
     return JWT.sign(payload, JWT_SECRET, { expiresIn: '30m' });
 };
 
@@ -68,3 +68,27 @@ export class Exception extends Error {
 export const isAdmin = (role) => {
     return role === 'admin'
 };
+
+//Calcular total de carritos
+export const calcularTotal = (products) => {
+    return products.reduce((total, product) => total + (product.quantity * product.price || 0), 0);
+}
+
+//Crear productsMocks
+export const generateProducts = () =>{
+    const stock = faker.number.int({min: 0, max: 25});
+    const status = stock > 0; 
+
+    return {
+        id: faker.database.mongodbObjectId(),
+        title: faker.commerce.productName(),
+        description: faker.lorem.paragraph(),
+        category: faker.commerce.department(),
+        code: faker.string.alphanumeric({ length: 10 }),
+        thumbnails: faker.image.url(),
+        price: faker.commerce.price(),
+        stock: stock,
+        status: status,
+    };
+};
+

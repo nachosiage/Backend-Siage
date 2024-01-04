@@ -5,7 +5,6 @@ const router = Router();
 
 router.get('/', async (req, res) => {
     const token = req.signedCookies['access_token'];
-
     if(token){
         try {
             const user = await verifyToken(token);
@@ -45,6 +44,10 @@ router.get('/profile', async (req, res) => {
 
 router.get('/recovery-password', (req, res) => {
     res.render('recovery-password', { style:'recovery.css' ,titlePage: 'Recuperar contraseña'});
+});
+
+router.get('/new-password', (req, res) => {
+    res.render('newPassword', { titlePage: 'Nueva contraseña' });
 });
 
 export default router;

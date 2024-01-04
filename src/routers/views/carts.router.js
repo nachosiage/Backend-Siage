@@ -1,14 +1,10 @@
 import { Router } from 'express';
 import  CartsController from '../../controllers/carts.controller.js';
 import passport from 'passport';
-import { authorizationMiddleware } from '../../utils.js';
-
+import { authorizationMiddleware, calcularTotal } from '../../utils.js';
 
 const router = Router();
 
-function calcularTotal(products) {
-    return products.reduce((total, product) => total + (product.totalPrice || 0), 0);
-}
 
 //CartsManager
 router.get('/api/carts',
@@ -60,11 +56,21 @@ router.get('/carts/:cid', async (req, res, next) => {
             return {...e.product._doc, quantity: e.quantity, cartId, totalPrice:e.quantity*e.product.price}
         })
         const totalCompra = calcularTotal(products);
-        res.render('carts', {products, totalCompra, titlePage: 'Carrito', style: 'carts.css'})
+        res.render('carts', {products, totalCompra, cartId, titlePage: 'Carrito', style: 'carts.css'})
     } catch (error) {
         console.log('Ocurrio un error durante la busqueda del carrito del cliente');
         next(error);
     }
 });
+
+router.get('carts/:cid/purchase', async (req,res, next) =>{
+    try {
+        const { cid } = req.params; 
+        
+    } catch (error) {
+        console.log('Ocurrio un error durante la busqueda del carrito del cliente');
+        next(error);
+    }
+})
 
 export default router;

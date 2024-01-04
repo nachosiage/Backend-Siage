@@ -1,15 +1,13 @@
 //Logic general
 import express from 'express';
 import passport from 'passport';
-//import expressSession from 'express-session';
-//import MongoStore from 'connect-mongo';
 import path from 'path';
 import handlebars from 'express-handlebars';
 import { __dirname } from './utils.js'
-//import { URI } from './db/mongodb.js'
 import { init as initPassportConfig } from'./config/passport.config.js';
 import cookieParser from 'cookie-parser';
 import config from './config.js';
+import cors from 'cors';
 
 //Routes
 import productsApiRouter from './routers/api/products.router.js';
@@ -17,31 +15,23 @@ import cartsApiRouter from './routers/api/carts.router.js';
 import productsViewsRouter from './routers/views/products.router.js';
 import cartsViewsRouter from './routers/views/carts.router.js';
 import indexRouter from './routers/views/index.router.js';
-//import sessionApiRouter from './routers/api/sessions.router.js';
-import authApiRouter from './routers/api/auth.router.js'
+import authApiRouter from './routers/api/auth.router.js';
+import notificationsApiRouter from './routers/api/notifications.router.js';
 
-//Logic express + sessions
+//Logic express + cookies 
 const app = express();
-
-// const SESSION_SECRET = 'dmO847bYjCv<J46`<d*-ln71AyP7J';
-
-// app.use(expressSession({
-//     secret: SESSION_SECRET,
-//     resave: false, 
-//     saveUninitialized: false, 
-//     store: MongoStore.create({
-//         mongoUrl: URI,
-//         mongoOptions: {},
-//         ttl: 3600
-//     })
-// }))
-
 const COOKIE_SECRET = config.secret.cookieSecret;
-
 app.use(cookieParser(COOKIE_SECRET));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+
+//cors
+const corsOptions = {
+    origin: 'http://localhost:5500',
+    methods: ['GET','POST','PUT'],
+};
+app.use(cors(corsOptions));
 
 //Logic handlebars
 app.engine('handlebars', handlebars.engine()); //motor que uso  
@@ -57,7 +47,7 @@ app.use(passport.initialize());
 app.use('/api/products', productsApiRouter);
 app.use('/api/carts', cartsApiRouter);
 app.use('/api/auth', authApiRouter);
-//app.use('/api/sessions', sessionApiRouter);
+app.use('/api', notificationsApiRouter);
 
 //Routers views
 app.use('/', productsViewsRouter, cartsViewsRouter, indexRouter);

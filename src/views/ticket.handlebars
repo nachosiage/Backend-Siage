@@ -1,0 +1,28 @@
+<nav>
+    <ul>
+        <li><strong>Ecommerce</strong></li>
+    </ul>
+    <ul>
+        <li><a href="/products"><button>Tienda</button></a></li>
+        <li><a href="/profile">Perfil</a></li>
+        <li><a href="/api/auth/logout">Cerrar sesión</a></li>
+    </ul>
+</nav>
+
+<h1>Ticket</h1>
+<p><strong>Codigo de la compra:</strong> {{code}}</p>
+<p><strong>Fecha y hora:</strong> {{purchase_datetime}}</p>
+<p><strong>Compra total:</strong> ${{amount}}</p>
+<p><strong>Usuario:</strong> {{purchaser}}</p>
+
+<h2>Productos</h2>
+<ul>
+    {{#if products}} 
+        {{#each products}}
+            <li>
+                <strong>ID del producto:</strong> {{this.product}}, 
+                <strong>Cantidad:</strong> {{this.quantity}}
+            </li>
+        {{/each}}
+    {{/if}}
+</ul>
