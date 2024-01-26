@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import  CartsController from '../../controllers/carts.controller.js';
 import passport from 'passport';
-import { authorizationMiddleware, calcularTotal } from '../../utils.js';
+import { authorizationMiddleware, calcularTotal } from '../../utils/utils.js';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ const router = Router();
 //CartsManager
 router.get('/api/carts',
     passport.authenticate('jwt', { session: false }),
-    authorizationMiddleware('admin'),
+    authorizationMiddleware(['admin', 'premium']),
     async (req, res, next) =>{
         try {
             const cart = await CartsController.get(req.query);
@@ -22,7 +22,7 @@ router.get('/api/carts',
             })
             res.render('cartsManager', {carts, titlePage: 'CartsManager', style: 'carts.css'})
         } catch (error) {
-            console.log('Ha ocurrido un error durante la busqueda de los carritos');
+            req.logger.error('Error al mostrar los productos del carrito')
             next(error)
         }
 });
@@ -30,7 +30,7 @@ router.get('/api/carts',
 //Obtengo un carrito especifico
 router.get('/api/carts/:cid', 
     passport.authenticate('jwt', { session: false }),
-    authorizationMiddleware('admin'),
+    authorizationMiddleware(['admin', 'premium']),
     async (req, res, next) => {
         try {
             const { cid } = req.params;
@@ -41,7 +41,7 @@ router.get('/api/carts/:cid',
             })
             res.render('cartProduct', {products, titlePage: 'Editar carrito', style:'carts.css'})
         } catch (error) {
-            console.log('Ha ocurrido un error durante la busqueda del carrito solicitado');
+            req.logger.error('Error al encontrar el carrito')
             next(error);
         }
 });
@@ -58,19 +58,9 @@ router.get('/carts/:cid', async (req, res, next) => {
         const totalCompra = calcularTotal(products);
         res.render('carts', {products, totalCompra, cartId, titlePage: 'Carrito', style: 'carts.css'})
     } catch (error) {
-        console.log('Ocurrio un error durante la busqueda del carrito del cliente');
+        req.logger.error('Error al encontrar el carrito de un cliente')
         next(error);
     }
 });
-
-router.get('carts/:cid/purchase', async (req,res, next) =>{
-    try {
-        const { cid } = req.params; 
-        
-    } catch (error) {
-        console.log('Ocurrio un error durante la busqueda del carrito del cliente');
-        next(error);
-    }
-})
 
 export default router;

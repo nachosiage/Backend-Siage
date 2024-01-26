@@ -3,7 +3,7 @@ import ProductDao from "../dao/product.dao.js";
 export default class ProductsServices {
     static async create(payload) {
         const product = await ProductDao.create(payload);
-        console.log(`Carrito creado correctamente. ID: ${product._id}`); 
+        console.log(`Producto creado correctamente. ID: ${product._id}`); 
         return product;
     };
 
@@ -15,6 +15,10 @@ export default class ProductsServices {
         return ProductDao.getById(pid);
         
     };
+
+    static findOne(query) {
+        return ProductDao.findOne(query);
+    }
 
     static async updateById(pid, data) {
         const updatedProduct = await ProductDao.updateById(pid, data);

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import config from '../config.js';
+import config from '../config/config.js';
 
 class EmailService {
     constructor() {
@@ -21,6 +21,7 @@ class EmailService {
             attachments
         })
     }
+
 };
 
 export default new EmailService();

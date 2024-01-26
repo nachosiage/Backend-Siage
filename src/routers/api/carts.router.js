@@ -2,21 +2,21 @@ import { Router } from "express";
 import  CartsController  from "../../controllers/carts.controller.js";
 import TicketsController from "../../controllers/ticket.controller.js";
 import passport from "passport";
-import { authorizationMiddleware } from "../../utils.js";
+import { authorizationMiddleware } from "../../utils/utils.js";
 
 const router = Router();
 
 //Crear un carrito
 router.post('/', 
     passport.authenticate('jwt', { session: false }),
-    authorizationMiddleware('admin'),    
+    authorizationMiddleware(['admin', 'premium']),    
     async (req, res, next) => {
         try {
             const { body } = req;
             const newCart = await CartsController.create(body);
             res.status(201).json(newCart);
         } catch (error) {
-            console.log('Ha ocurrido un error al crear el carrito');
+            req.logger.error('Error al crear el carrito')
             next(error);
         }
 });
@@ -24,26 +24,28 @@ router.post('/',
 //Agregar un product al cart
 router.post('/:cid/products/:pid',
     passport.authenticate('jwt', { session: false }),
-    authorizationMiddleware('user'),
-    async (req,res) =>{
+    authorizationMiddleware(['user', 'premium']),
+    async (req,res, next) =>{
         try {
             const { cid } = req.params;
             const { pid } = req.params;
             const cart = await CartsController.addProduct(cid, pid)
             res.status(200).json(cart);
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            req.logger.error('Error al agregar producto al carrito')
+            next(error);
         }
 });
 
 //Eliminar producto del carrito
-router.delete('/:cid/products/:pid', async (req, res) =>{
+router.delete('/:cid/products/:pid', async (req, res, next) =>{
     try {
         const {cid, pid} = req.params;
         const cart = await CartsController.deleteProduct(cid, pid);
         res.status(200).json(cart);
     } catch (error) {
-        res.status(error.status || 500).json({ message: error.message });
+        req.logger.error('Error al eliminar producto del carrito')
+        next(error);
     }
 });
 
@@ -56,7 +58,8 @@ router.put('/:cid', async (req, res) => {
         const cart = await CartsController.updateCart(cid, products);
         res.status(200).json(cart);
     } catch (error) {
-        res.status(error.statusCode || 500).json({ message: error.message });
+        req.logger.error('Error al actualizar el carrito')
+        next(error);
     }
 });
 
@@ -79,14 +82,15 @@ router.delete('/:cid', async (req, res) =>{
         const cart = await CartsController.clearCart(cid);
         res.status(200).json(cart);
     } catch (error) {
-        res.status(error.status || 500).json({ message: error.message });
+        req.logger.error('Error al vaciar el carrito')
+            next(error);
     }
 });
 
 //Finalizar compra
 router.post('/:cid/purchase',
     passport.authenticate('jwt', { session: false }),
-    authorizationMiddleware('user'),
+    authorizationMiddleware(['user', 'premium']),
     async (req, res) =>{
         try {
             const { cid } = req.params; 
@@ -109,7 +113,8 @@ router.post('/:cid/purchase',
                 )
             
         } catch (error) {
-            res.status(error.status || 500).json({ message: error.message });
+            req.logger.fatal('Error al finalizar la compra')
+            next(error);
         }
 })
 

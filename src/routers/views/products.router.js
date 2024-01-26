@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import ProductsControllers from '../../controllers/product.controller.js';
 import passport from "passport";
-import { authorizationMiddleware, generateProducts } from '../../utils.js';
+import { authorizationMiddleware, generateProducts } from '../../utils/utils.js';
 
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
 //Products Manager ✔️
 router.get('/api/products',
     passport.authenticate('jwt', { session: false }),
-    authorizationMiddleware('admin'),
+    authorizationMiddleware(['admin', 'premium']),
     async (req, res) =>{
         try {
             const { page = 1, limit = 10, category, sort } = req.query;

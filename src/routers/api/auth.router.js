@@ -1,9 +1,14 @@
 import { Router } from "express";
 import UsersControllers from "../../controllers/users.controller.js";
-import { createHash, isValidPassword, tokenGenerator } from "../../utils.js";
+import { createHash, isValidPassword, tokenGenerator, verifyToken } from "../../utils/utils.js";
 import CartsController from "../../controllers/carts.controller.js";
 import passport from "passport";
-import emailServices from "../../services/email.services.js";
+import emailServices from "../../services/email.service.js";
+import { CustomError } from '../../utils/CustomError.js';
+import { generatorRegisterError, generatorLoginError, generatorRecoveryError } from '../../utils/CauseMessageError.js';
+import  EnumsError  from '../../utils/EnumsError.js';
+import JWT from "jsonwebtoken";
+import config from "../../config/config.js";
 
 const router = Router();
 
@@ -15,39 +20,64 @@ router.post('/register', async (req, res) =>{
         age,
         password
     } = req.body;
-    let newUser = await UsersControllers.getOne({ email });
-    if (newUser) {
-        return res.status(400).json({ message: 'Correo ya existente ❌' });
+    try {
+        let newUser = await UsersControllers.getOne({ email });
+        if (newUser) {
+            CustomError.createError({
+                name: 'Error al crear el usuario',
+                cause: generatorRegisterError({ email }),
+                message: 'Ocurrio un error al registrar el usuario',
+                code: EnumsError.INVALID_PARAMS_ERROR
+            })
+        }
+        newUser = await UsersControllers.create({
+            first_name,
+            last_name,
+            email,
+            age,
+            password: createHash(password),
+        });
+        const cart = await CartsController.create({user: newUser.id, products: []});
+        newUser.cart = cart._id;
+        await newUser.save();
+        res.status(201).redirect('/login');
+    } catch (error) {
+        req.logger.error('Error al intentar registrar un nuevo usuario')
+        res.status(400).json({ error: error.message });
     }
-    newUser = await UsersControllers.create({
-        first_name,
-        last_name,
-        email,
-        age,
-        password: createHash(password),
-    });
-    const cart = await CartsController.create({user: newUser.id, products: []});
-    newUser.cart = cart._id;
-    await newUser.save();
-    res.status(201).redirect('/login');
 });
 
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;   
-    const user = await UsersControllers.getOne({email});
-    if (!user) {
-        return res.status(401).json({ message: 'Correo o contraseña invalidos 😨' });
+    try {
+        const user = await UsersControllers.getOne({email});
+        if (!user) {
+            CustomError.createError({
+                name: 'Error al iniciar sesión',
+                cause: generatorLoginError(),
+                message: 'Usuario o contraseña incorrecto',
+                code: EnumsError.INVALID_PARAMS_ERROR
+            })
+        }
+        const isPassValid = isValidPassword(password, user);
+        if (!isPassValid) {
+            CustomError.createError({
+                name: 'Error al iniciar sesión',
+                cause: generatorLoginError(),
+                message: 'Usuario o contraseña incorrecto',
+                code: EnumsError.INVALID_PARAMS_ERROR
+            })
+        }
+        req.user = user;
+        const token = tokenGenerator(user, user.cart);
+        res
+            .cookie('access_token', token, { maxAge: 1000*60*30, httpOnly: true, signed: true })
+            .status(200)
+            .redirect('/');
+    } catch (error) {
+        req.logger.error('Error al intentar iniciar sesion')
+        res.status(400).json({ error: error.message });
     }
-    const isPassValid = isValidPassword(password, user);
-    if (!isPassValid) {
-        return res.status(401).json({ message: 'Correo o contraseña invalidos 😨' });
-    }
-    req.user = user;
-    const token = tokenGenerator(user, user.cart);
-    res
-        .cookie('access_token', token, { maxAge: 1000*60*30, httpOnly: true, signed: true })
-        .status(200)
-        .redirect('/');
 });
 
 router.get('/logout', async (req, res) => {
@@ -61,32 +91,59 @@ router.post('/recovery-password', async (req, res, next) => {
         const { email } = req.body;
         const user = await UsersControllers.getOne({ email });
         if (!user) {
-            return res.status(401).send('El correo no existe 😨.');
+            CustomError.createError({
+                name: 'Error al intentar recuperar la contraseña',
+                cause: generatorRecoveryError({ email }),
+                message: 'El correo proporcionado no existe',
+                code: EnumsError.INVALID_PARAMS_ERROR
+            })
         }
+
+        const token = JWT.sign({ email }, config.secret.jwtSecret, {expiresIn: '1h'});
+        console.log('recovery', token);
+
         const result = await emailServices.sendEmail(
             email, 
             'Recuperar contraseña',
             `<div>
                 <p>Para recuperar tu contraseña, debes ingresar al siguiente enlace: </p>
-                <a href="http://localhost:8080/new-password">AQUI</a>
-            </div>`
+                <a href="http://localhost:8080/new-password/${token}">AQUI</a>
+            </div>
+            <div>
+                <p>El enlace de recuperación vence en 1 hora despues de recibido este correo.</p>
+            </div>
+            `
         );
-        res.redirect('/login');
+        res.status(200).json('Correo enviado correctamente');
     } catch (error) {
-        console.log('Error inesperado del servidor', error);
-        next(error);
+        req.logger.error('Error al intentar recuperar la contraseña')
+        res.status(400).json({ error: error.message });
     }
 });
 
-router.post('/new-password', async (req, res) => {
-    const { email, newPassword } = req.body;
-    const user = await UsersControllers.getOne({ email });
-    if (!user) {
-        return res.status(401).send('El usuario no existe 😨.');
+router.post('/new-password', async (req, res) => {    
+    try {
+        const { email, newPassword } = req.body;
+        const user = await UsersControllers.getOne({ email });
+        if (!user) {
+            CustomError.createError({
+                name: 'Error al intentar recuperar la contraseña',
+                cause: generatorRecoveryError({ email }),
+                message: 'El correo proporcionado no existe',
+                code: EnumsError.INVALID_PARAMS_ERROR
+            })
+        }
+        const isPassValid = isValidPassword(newPassword, user);
+        if(isPassValid){
+            res.status(400).json('La contraseña que intenta utilizar ya se utilizo anteriormente')
+        }
+        let hashedPassword = createHash(newPassword)
+        const userUpdate = await UsersControllers.updateById(user.id , { password: hashedPassword });
+        res.redirect('/login');
+    } catch (error) {
+        req.logger.error('Error al intentar cambiar la contraseña')
+        res.status(400).json({ error: error.message });
     }
-    let hashedPassword = createHash(newPassword)
-    const userUpdate = await UsersControllers.updateById(user.id , { password: hashedPassword });
-    res.redirect('/login');
 });
 
 router.get('/github', passport.authenticate('github', { scope:['user.email'] }));
@@ -99,6 +156,7 @@ router.get('/github/callback', passport.authenticate('github', { failureRedirect
         .status(200)
         .redirect('/');
     } catch (error) {
+        req.logger.fatal('Error al intentar iniciar sesion con github')
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });

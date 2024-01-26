@@ -1,7 +1,7 @@
 import app from './app.js';
 import { init } from './socket.js'
 import { initDB } from './db/mongodb.js'
-import config from './config.js';
+import config from './config/config.js';
 
 await initDB();
 
@@ -12,3 +12,5 @@ const httpServer = app.listen(PORT, () => {
 });
 
 init(httpServer);
+
+

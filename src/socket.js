@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import { __dirname } from './utils.js';
+import { __dirname } from './utils/utils.js';
 import ProductsControllers from './controllers/product.controller.js';
 import CartsController from './controllers/carts.controller.js';
 import mongoose from 'mongoose';
@@ -16,11 +16,12 @@ export const init = (httpServer) => {
             const newProduct = { 
                 status: true,
                 thumbnails: [],
+                owner: 'admin',
                 ...product
                 };
 
                 try {
-                    const existingProduct = await ProductsControllers.findOne({ code: newProduct.code });
+                    const existingProduct = await ProductsControllers.findOne( {code: newProduct.code} );
                     if (existingProduct) {
                         console.log(`El producto con code: ${newProduct.code} ya existe`);
                         socketClient.emit('prod-existente');
@@ -43,7 +44,7 @@ export const init = (httpServer) => {
                 return;
             }
             try {
-                await ProductManager.deleteById(prodId);
+                await ProductsControllers.deleteById(prodId);
                 const products = await ProductsControllers.get();
                 socketClient.emit('prod-delete', products);
             } catch (error) {

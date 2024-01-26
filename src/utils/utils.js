@@ -2,7 +2,7 @@ import path from 'path';
 import bcrypt from 'bcrypt';
 import  JWT from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
-import config from './config.js';
+import config from '../config/config.js';
 import { faker } from '@faker-js/faker';
 
 
@@ -31,7 +31,7 @@ export const tokenGenerator = (user) => {
         role
     };
 
-    return JWT.sign(payload, JWT_SECRET, { expiresIn: '30m' });
+    return JWT.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 };
 
 export const verifyToken = (token) => {
@@ -66,7 +66,7 @@ export class Exception extends Error {
 
 //Funcion para verificar si es admin
 export const isAdmin = (role) => {
-    return role === 'admin'
+    return role === 'admin' || role === 'premium'
 };
 
 //Calcular total de carritos
