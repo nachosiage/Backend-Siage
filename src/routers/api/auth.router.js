@@ -40,10 +40,9 @@ router.post('/register', async (req, res) =>{
         const cart = await CartsController.create({user: newUser.id, products: []});
         newUser.cart = cart._id;
         await newUser.save();
-        res.status(201).redirect('/login');
+        res.status(302).redirect('/login');
     } catch (error) {
         req.logger.error('Error al intentar registrar un nuevo usuario')
-        res.status(400).json({ error: error.message });
     }
 });
 
@@ -70,6 +69,8 @@ router.post('/login', async (req, res) => {
         }
         req.user = user;
         const token = tokenGenerator(user, user.cart);
+        const currentDate = new Date();
+        const userUpdate = await UsersControllers.updateById(user.id , { last_connection: currentDate });
         res
             .cookie('access_token', token, { maxAge: 1000*60*30, httpOnly: true, signed: true })
             .status(200)

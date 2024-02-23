@@ -1,7 +1,7 @@
 import { Router } from "express";
 import UsersControllers from "../../controllers/users.controller.js";
 import passport from "passport";
-import { authorizationMiddleware } from "../../utils/utils.js";
+import { authorizationMiddleware, uploader } from "../../utils/utils.js";
 
 const router = Router();
 
@@ -19,5 +19,23 @@ router.post('/premium/:uid',
                 res.status(500).json('Error al actualizar el rol del usuario.');
             }
 });
+
+router.post('/:uid/documents/', 
+    passport.authenticate('jwt', { session: false }),
+    uploader.single('file'),
+    async (req, res) =>{
+        try {
+            const { user: { id }, file, params: { documentType } } = req;
+            if (!file) {
+                return res.status(400).json('Se debe cargar al menos un documento.')
+            }
+            await UsersControllers.uploadFile(id, documentType, file);
+            res.status(204).end();
+        } catch (error) {
+            
+        }
+
+});
+
 
 export default router;
