@@ -3,7 +3,8 @@
         <li><strong>Ecommerce</strong></li>
     </ul>
     <ul>
-        <li><a href="/api/products">ProductsManager</a></li>
+        <li><a href="/api/products">Productos</a></li>
+        <li><a href="/api/users">Lista de usuarios</a></li>
         <li><a href="/products">Tienda</a></li>
         <li><a href="/profile">Perfil</a></li>
         <li><a href="/api/auth/logout">Cerrar sesión</a></li>
@@ -17,7 +18,7 @@
                     <th scope="col">ID</th>
                     <th scope="col">Usuario</th>
                     <th scope="col">Cantidad de productos</th>
-                    <th scope="col">Eliminar/Editar</th>
+                    <th scope="col">Eliminar</th>
                 </tr>
             </thead>
             <tbody id="tableCarts">
@@ -28,9 +29,6 @@
                         <td>{{cartLength}}</td>
                         <td class="btn-config">
                             <button class="delete-cart btn-carts" id="{{cartID}}">❌</button>
-                            <a href="/api/carts/{{cartID}}">
-                                <button class="edit-cart btn-carts" id="{{cartID}}">🖋️</button>
-                            </a>
                         </td>
                     </tr>
                 {{/each}}

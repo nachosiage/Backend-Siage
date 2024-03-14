@@ -12,6 +12,11 @@ export default class UsersControllers {
         return UsersServices.get(filter)
     };
 
+    static async getAll(){
+        return UsersServices.get()
+    }
+    
+
     static async getOne(criteria){
         const user = await UsersServices.getOne(criteria);
         return user ? user : null;
@@ -37,18 +42,26 @@ export default class UsersControllers {
         return UsersServices.updateById(uid, payload)
     };
 
-    static deleteById(uid){
+    static async deleteById(uid){
         return UsersServices.deleteById(uid);
     };
     
     static async uploadFile (uid, documentType, file){
+        const user = await UsersServices.getById(uid);
+        const existingData = user.documents;
+        
         const data = {};
-        if (documentType === 'profile'){
-            Object.assign(data, { profiles: file.filename });
-        } else if (documentType === 'product'){
-            Object.assign(data, { products: file.filename });
+        if (documentType === 'profile') {
+            data.profiles = [{ filename: file.filename }];
+        } else if (documentType === 'product') {
+            data.products = [{ filename: file.filename }];
         } else {
-            Object.assign(data, { documents: file.filename });
+            data.documents = [...existingData,
+                {                
+                name: documentType,
+                reference: file.path
+                }
+            ];
         }
         return UsersServices.updateById(uid, data)
     };

@@ -1,0 +1,47 @@
+<nav>
+    <ul>
+        <li><strong>Ecommerce</strong></li>
+    </ul>
+    <ul>
+        <li><a href="/api/products">Productos</a></li>
+        <li><a href="/api/carts">Carritos</a></li>
+        <li><a href="/products">Tienda</a></li>
+        <li><a href="/profile">Perfil</a></li>
+        <li><a href="/api/auth/logout">Cerrar sesión</a></li>
+    </ul>
+</nav>
+<div>
+    <h2 >Usuarios</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Configurar</th>
+                </tr>
+            </thead>
+            <tbody id="tableCarts">
+                {{#each users}}
+                    <tr data-product-id="{{userID}}">
+                        <th scope="row">{{userID}}</th>
+                        <td>{{userName}}</td>
+                        <td>{{userEmail}}</td>
+                        <td>{{userRole}}</td>
+                        <td>
+                            <a href="/api/users/{{userID}}">
+                                <button class="edit-user" id="{{userID}}">⚙️</button>
+                            </a>
+                        </td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+</div>
+<div>
+    <button id="delete-user-inactive">Eliminar usuarios inactivos</button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/userList.js"></script>

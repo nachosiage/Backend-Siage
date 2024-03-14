@@ -3,7 +3,9 @@ import { __dirname } from './utils/utils.js';
 import ProductsControllers from './controllers/product.controller.js';
 import CartsController from './controllers/carts.controller.js';
 import mongoose from 'mongoose';
-
+import UsersControllers from './controllers/users.controller.js';
+import moment from 'moment';
+import emailService from './services/email.service.js';
 
 let io;
 
@@ -94,5 +96,47 @@ export const init = (httpServer) => {
                 console.error('Error al crear el carrito', error.message);3
             }
         });
+
+        socketClient.on('user-role-change', async ({selectedRole, userID}) =>{
+            const user = await UsersControllers.getById(userID)
+            await UsersControllers.updateById(userID, {role: selectedRole});
+            user.save();
+            socketClient.emit('user-update', user)
+        });
+
+        socketClient.on('user-delete', async (userID) => {
+            await UsersControllers.deleteById(userID);
+            socketClient.emit('user-delete-confirm');
+        });
+
+        socketClient.on('delete-users-inactive', async () =>{
+            try {
+                const allUsers = await UsersControllers.getAll();
+                const currentDateTime = new Date();
+                const inactivityLimit = moment(currentDateTime).subtract(2, 'minutes');
+                const usersToDelete = allUsers.filter(user => {
+                    return user.role === 'user' && moment(user.last_connection).isBefore(inactivityLimit);
+                });
+                if (usersToDelete.length === 0){
+                    socketClient.emit('no-user-delete')
+                } else {
+                    for (const userToDelete of usersToDelete) {
+                        const result = await emailService.sendEmail(
+                            userToDelete.email, 
+                            'Usuario eliminado',
+                            `<div>
+                                <p>Su usuario ha sido eliminado por inactividad. Para volver a utilizar nuestro sitio web deberá volver a registrarse. Muchas gracias</p>
+                            </div>
+                            `
+                        );
+                        await UsersControllers.deleteById(userToDelete.id); 
+                    }
+                    socketClient.emit('user-delete-confirm')
+                }
+            } catch (error) {
+                console.error(error);
+                console.log('Error al eliminar los usuarios')
+            }
+        })
     });
 };

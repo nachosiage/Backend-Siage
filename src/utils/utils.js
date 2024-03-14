@@ -22,14 +22,16 @@ export const tokenGenerator = (user) => {
         id,
         fullName, 
         email, 
-        role 
+        role,
+        documents
     } = user;
 
     const payload = {
         id,
         fullName,
         email,
-        role
+        role,
+        documents
     };
 
     return JWT.sign(payload, JWT_SECRET, { expiresIn: '1h' });
@@ -104,9 +106,15 @@ const storage = multer.diskStorage({
         if (documentType === 'product'){
             folderPath = path.join(__dirname, '..', '..', 'public', 'products' );
         };
-        if (documentType === 'document'){
-            folderPath = path.join(__dirname, '..', '..', 'public', 'documents' );
+        if (documentType === 'DNI'){
+            folderPath = path.join(__dirname, '..', '..', 'public', 'documents', 'DNI' );
         }   
+        if (documentType === 'HomeAddress'){
+            folderPath = path.join(__dirname, '..', '..', 'public', 'documents', 'HomeAddress' );
+        } 
+        if (documentType === 'AccountStatus'){
+            folderPath = path.join(__dirname, '..', '..', 'public', 'documents', 'AccountStatus' );
+        } 
         callback(null, folderPath);
     },
     filename: (req, file, callback) => {
